@@ -1,6 +1,6 @@
 from .registry import MODEL_REGISTRY
 
-def create_all_tables():
+def create_all_tables(engine):
     for model in MODEL_REGISTRY:
         field_sqls = []
 
@@ -12,6 +12,4 @@ def create_all_tables():
                 {','.join(field_sqls)}
             )
             """
-        
-        print("Criado as tabelas ")
-        print(sql)
+        engine.execute(sql)
