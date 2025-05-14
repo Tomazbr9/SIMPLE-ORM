@@ -1,4 +1,4 @@
-from .registry import MODEL_REGISTRY
+from registry import MODEL_REGISTRY
 
 def create_all_tables(engine):
     for model in MODEL_REGISTRY:
@@ -9,6 +9,7 @@ def create_all_tables(engine):
 
         sql = f"""
             CREATE TABLE IF NOT EXISTS {model.__name__.lower()}(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 {','.join(field_sqls)}
             )
             """
