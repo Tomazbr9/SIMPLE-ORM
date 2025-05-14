@@ -33,14 +33,13 @@ def create_connection_mysql(connection_data):
         database=connection_data.path.lstrip('/')
     )
 
-    return connection.cursor()
+    return connection
 
 def create_connection_sqlite(connection_data):
     import sqlite3
+    connection = sqlite3.connect(connection_data.path.replace('/', ''))
 
-    connection = sqlite3.connect(connection_data.path)
-
-    return connection.cursor()
+    return connection
 
 def create_connection_postgree(connection_data):
     import psycopg2
@@ -53,7 +52,7 @@ def create_connection_postgree(connection_data):
         port=connection_data.port
     )
 
-    return connection.cursor()
+    return connection
 
 def create_engine(url):
 
@@ -61,6 +60,3 @@ def create_engine(url):
     connection = check_connection_type(url_demount)
     
     return connection
-
-if __name__ == '__main__':
-     disassemble_url('mysql://bruno:12345@localhost:3366/banco')
