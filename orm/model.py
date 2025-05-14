@@ -1,6 +1,6 @@
-from .fields import Field
+from fields import Field
 
-from .registry import MODEL_REGISTRY
+from registry import MODEL_REGISTRY
 
 class MetaModel(type):
     def __new__(cls, name, bases, attrs):
