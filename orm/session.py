@@ -1,5 +1,5 @@
 from model import ModelBase
-from query import Query
+from query import QueryResult
 from fields import Field
 
 class Session:
@@ -7,49 +7,43 @@ class Session:
         self._connection = engine
         self._engine = engine.cursor()
 
-    def query(self, model: ModelBase):
+    def query(self, model):
+        self.model = model
         return self
     
     def commit(self):
         self._connection.commit()
     
-    def add(self, model: ModelBase):
-        new_records = model.__dict__
-
-        keys = []
-        values = []
-
-        for i, j in new_records.items():
-
-            keys.append(i)
-            if isinstance(j, str):
-                values.append(f'"{j}"')
-                continue
-
-            if isinstance(j, int):
-                values.append(str(j))
-                continue
-            
-            values.append(j)
-        
-        sql = f"""INSERT INTO {model.__class__.__name__} ({', '.join(keys)}) VALUES ({', '.join(values)})"""
-        
-        self._engine.execute(sql)
-
+    def add(self) -> None:
     
-    def get(self, model, id: int):
+        fields = self.model._fields  # type: ignore
+        field_names = list(fields.keys())
+
+        values = [getattr(self.model, field) for field in field_names]
+
+        placeholders = ', '.join(['?'] * len(field_names))
+        
+        sql = f"""
+            INSERT INTO {self.model.__class__.__name__.lower()} 
+            ({', '.join(field_names)}) 
+            VALUES ({placeholders})
+        """
+  
+        self._engine.execute(sql, values)
+
+    def get(self, id: int) -> QueryResult | None:
         self._engine.execute(
-            f'SELECT * FROM {model.__name__} WHERE id = ?', (id,)
+            f'SELECT * FROM {self.model.__name__} WHERE id = ?', (id,)
         )
         record = self._engine.fetchone()
 
-        attributes_dict = model._fields # type: ignore
+        if not record:
+            return None
 
-        for i, key in enumerate(attributes_dict.keys()):
-            setattr(model, key, record[i + 1])
+        attribute_names = ['id'] + list(self.model._fields.keys()) # type: ignore
         
-        setattr(model, 'id', record[0])
-        return model
+        data = dict(zip(attribute_names, record))
+        return QueryResult(model_cls=self.model, data=data)
     
 
 
